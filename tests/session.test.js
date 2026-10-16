@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mulberry32 } from '../src/rng.js';
-import { emptyState, recordAnswer, isMastered, WINDOW, SESSION_LEN, WARMUP_LEN } from '../src/scheduler.js';
+import { emptyState, recordAnswer, isMastered, FAST_TRACK, SESSION_LEN, WARMUP_LEN } from '../src/scheduler.js';
 import { createSession, currentQuestion, submitAnswer, isDone, summarize } from '../src/session.js';
 
 const T0 = 1_760_000_000_000;
@@ -66,7 +66,7 @@ test('repeatWrong flags the same wrong answer twice; newlyMastered flips when th
   assert.equal(r.repeatWrong, false);
 
   let st = emptyState();
-  for (let i = 0; i < WINDOW - 1; i++) st = recordAnswer(st, { question: { ...fact, factId: `M3:x${i}` }, correct: true, input: '1', mode: 'learn', ts: T0 + i });
+  for (let i = 0; i < FAST_TRACK - 1; i++) st = recordAnswer(st, { question: { ...fact, factId: `M3:x${i}` }, correct: true, input: '1', mode: 'learn', ts: T0 + i });
   let sess = createSession(st, { rungId: 'M3', mode: 'learn' }, rng, T0 + 100);
   const q0 = currentQuestion(sess);
   const out = submitAnswer(sess, st, q0.answer, T0 + 101);

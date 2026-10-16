@@ -1,6 +1,6 @@
 // Precache everything; serve cache-first; navigations fall back to index.html.
 // Bump CACHE on every deploy that changes any asset.
-const CACHE = 'mental-maths-v4';
+const CACHE = 'mental-maths-v5';
 const ASSETS = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',

@@ -6,6 +6,7 @@ export const WINDOW = 20;          // answers considered for accuracy
 export const MASTERY = 0.9;        // 18/20
 export const KEEP = 30;            // answers stored per rung
 export const MISSED_CLEAR = 3;     // correct-in-a-row to leave the pile
+export const FAST_TRACK = 10;      // this many correct in a row masters a rung at once
 export const REFRESH_BELOW = 0.8;
 export const SESSION_LEN = 10;
 export const WARMUP_LEN = 6;
@@ -48,11 +49,26 @@ export function blockingFacts(state, id) {
 }
 
 export function evaluateMastery(state, id) {
+  if (blockingFacts(state, id).length > 0) return false;
   const a = rungState(state, id).answers.slice(-WINDOW);
+  const recent = a.slice(-FAST_TRACK);
+  if (recent.length >= FAST_TRACK && recent.every((x) => x.c === 1)) return true;
   if (a.length < WINDOW) return false;
   const acc = a.reduce((n, x) => n + x.c, 0) / a.length;
-  return acc >= MASTERY && blockingFacts(state, id).length === 0;
+  return acc >= MASTERY;
 }
+
+/** What still stands between this rung and mastery, for the summary screen. */
+export function masteryProgress(state, id) {
+  const a = rungState(state, id).answers.slice(-WINDOW);
+  const correct = a.reduce((n, x) => n + x.c, 0);
+  let run = 0;
+  for (let i = a.length - 1; i >= 0 && a[i].c === 1; i--) run++;
+  return { correct, count: a.length, window: WINDOW, needed: Math.round(WINDOW * MASTERY), run, fastTrack: FAST_TRACK, blocking: blockingFacts(state, id).length };
+}
+
+/** Rungs that this rung directly unlocks. */
+export const unlocksNext = (id) => RUNG_ORDER.filter((r) => RUNGS[r].requires.includes(id));
 
 export function needsRefresh(state, id) {
   if (!isMastered(state, id)) return false;

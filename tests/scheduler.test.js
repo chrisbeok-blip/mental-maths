@@ -6,7 +6,7 @@ import { RUNG_ORDER } from '../src/ladder.js';
 import {
   emptyState, rungState, isUnlocked, isMastered, rollingAccuracy, evaluateMastery, recordAnswer,
   markVisited, pickTarget, composeSession, composeWeakSpots, composeWarmup, rungLevel, continueHint, needsRefresh,
-  WINDOW, KEEP, SESSION_LEN, WARMUP_LEN,
+  masteryProgress, unlocksNext, WINDOW, KEEP, SESSION_LEN, WARMUP_LEN, FAST_TRACK,
 } from '../src/scheduler.js';
 
 const T0 = 1_760_000_000_000;
@@ -69,19 +69,33 @@ test('answers window is capped at KEEP and accuracy uses the last WINDOW', () =>
   assert.equal(rollingAccuracy(s, 'M1'), 0);
 });
 
-test('mastery: exactly 18/20, 20 answers minimum, blocked only by streak-0 facts', () => {
+test('mastery: 18/20, or 10 correct in a row; blocked only by streak-0 facts', () => {
   assert.equal(evaluateMastery(drill(emptyState(), 'M1', 17, 3), 'M1'), false);
-  assert.equal(evaluateMastery(drill(emptyState(), 'M1', 19, 0), 'M1'), false, 'fewer than 20 answers');
+  assert.equal(evaluateMastery(drill(emptyState(), 'M1', FAST_TRACK - 1, 0), 'M1'), false, 'nine in a row is not enough');
+  assert.equal(evaluateMastery(drill(emptyState(), 'M1', FAST_TRACK, 0), 'M1'), true, 'a perfect first session masters the rung');
+  // mixed history: 2 wrong then 8 right is 10 answers but not 10 in a row and not 20 -> false
+  let m = drill(emptyState(), 'M1', 0, 2);
+  m = drill(m, 'M1', 8, 0, T0 + 10);
+  assert.equal(evaluateMastery(m, 'M1'), false);
+  // ... but the wrong facts block anyway; clear them and add 2 more right -> 10 in a row -> true
   let s = drill(emptyState(), 'M1', 2, 0);
-  s = drill(s, 'M1', 18, 0, T0 + 100);
-  assert.equal(evaluateMastery(s, 'M1'), true);
-  let b = drill(emptyState(), 'M1', 18, 2);
+  s = drill(s, 'M1', 1, 1, T0 + 50);          // one wrong in the middle (fact M1:bad0)
+  s = drill(s, 'M1', 9, 0, T0 + 100);         // 9 right after it: not 10 in a row, 13 answers
+  assert.equal(evaluateMastery(s, 'M1'), false);
+  assert.equal(masteryProgress(s, 'M1').run, 9);
+  // 9 right, 1 wrong, 9 right, 1 wrong: 18/20 but two streak-0 facts block it
+  let b = drill(emptyState(), 'M1', 9, 0);
+  b = recordAnswer(b, { question: q('M1', 'M1:bad0'), correct: false, input: '0', mode: 'learn', ts: T0 + 20 });
+  b = drill(b, 'M1', 9, 0, T0 + 30);
+  b = recordAnswer(b, { question: q('M1', 'M1:bad1'), correct: false, input: '0', mode: 'learn', ts: T0 + 40 });
   assert.equal(rollingAccuracy(b, 'M1'), 0.9);
   assert.equal(evaluateMastery(b, 'M1'), false);
   b = recordAnswer(b, { question: q('M1', 'M1:bad0'), correct: true, input: '1', mode: 'learn', ts: T0 + 50 });
   b = recordAnswer(b, { question: q('M1', 'M1:bad1'), correct: true, input: '1', mode: 'learn', ts: T0 + 51 });
   assert.equal(isMastered(b, 'M1'), true);
   assert.equal(rungState(b, 'M1').mastered_at, T0 + 51);
+  assert.deepEqual(unlocksNext('M1'), ['M2', 'D1']);
+  assert.deepEqual(unlocksNext('M3'), ['M4', 'F1', 'P1']);
 });
 
 test('mastery unlocks dependants; needsRefresh when a mastered rung drops under 80%', () => {

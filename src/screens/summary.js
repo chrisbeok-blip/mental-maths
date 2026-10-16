@@ -1,7 +1,7 @@
 import { h, fmtSeconds } from '../ui.js';
 import { RUNGS } from '../ladder.js';
 import { formatAnswer } from '../answer.js';
-import { rungState } from '../scheduler.js';
+import { rungState, isMastered, masteryProgress, unlocksNext } from '../scheduler.js';
 
 export function render(root, ctx) {
   const sum = ctx.lastSummary;
@@ -24,6 +24,15 @@ export function render(root, ctx) {
     ? () => { ctx.setLastSummary(null); ctx.startSession({ rungId: sum.rungId, mode: 'learn' }); }
     : next;
 
+  let progressLine = null;
+  if (sum.mode === 'learn' && rung && !isMastered(state, sum.rungId)) {
+    const mp = masteryProgress(state, sum.rungId);
+    const next = unlocksNext(sum.rungId).map((id) => RUNGS[id].short).join(' and ');
+    const parts = [`${mp.correct} of your last ${mp.count} right. ${mp.needed} of ${mp.window} unlocks ${next || 'the next skill'}`];
+    if (mp.blocking) parts.push(`${mp.blocking} missed fact${mp.blocking === 1 ? '' : 's'} to get right first`);
+    parts.push(`A perfect ${mp.fastTrack} in a row unlocks it straight away`);
+    progressLine = h('p', { class: 'progress-line' }, parts.join('. ') + '.');
+  }
   const meta = [fmtSeconds(sum.seconds)];
   if (sum.speed && pb != null) meta.push(isPB ? 'new best time' : `best ${fmtSeconds(pb)}`);
 
@@ -32,6 +41,7 @@ export function render(root, ctx) {
       h('header', { class: 'topbar' }, h('span'), h('span', { class: 'title' }, title), h('span')),
       h('p', { class: 'score' }, `${sum.score}`, h('small', {}, `/${sum.total}`)),
       h('p', { class: 'meta' }, meta.join(', ')),
+      progressLine,
       sum.newlyMastered && h('div', { class: 'banner' },
         h('strong', {}, `${rung.title}: mastered.`),
         nudge && h('p', {}, 'Speed round unlocked. Same questions, five seconds each.'),

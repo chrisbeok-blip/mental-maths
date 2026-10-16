@@ -173,8 +173,15 @@ A rung is **mastered** when, over its last 20 non-warm-up answers:
   resurfacing through the missed-pile slots until cleared).
 
 A window of 20 at ~6 target questions per session means a rung can be
-mastered in 3-4 sessions, which suits a fast learner. The streak-0 rule stops
-one stubborn fact from freezing an otherwise mastered rung.
+mastered in 3-4 sessions. The streak-0 rule stops one stubborn fact from
+freezing an otherwise mastered rung.
+
+**Fast track (added after Chris's first test):** 10 correct in a row on a
+rung masters it immediately, provided no streak-0 facts block it. Someone who
+already knows a skill moves on after one perfect session instead of grinding
+to 20 answers. The summary screen states what is still needed ("14 of your
+last 20 right. 18 of 20 unlocks ×4 ×3 ×6 and Halve. A perfect 10 in a row
+unlocks it straight away.").
 
 Mastery unlocks dependent rungs and the rung's **speed mode**. Mastered rungs
 keep contributing retention questions. If a mastered rung's rolling accuracy
