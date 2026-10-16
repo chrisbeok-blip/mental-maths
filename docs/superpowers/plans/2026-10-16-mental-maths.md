@@ -93,7 +93,7 @@ Note: `missed[factId].q` stores the full question so the missed pile can re-ask 
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test \"tests/**/*.test.js\"",
     "serve": "python3 -m http.server 8080"
   }
 }
