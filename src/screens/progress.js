@@ -4,6 +4,7 @@ import { rungState, rungLevel, rollingAccuracy, missedSorted } from '../schedule
 import { currentStreak, secondsThisWeek, secondsAllTime } from '../stats.js';
 import { exportCode, importCode } from '../store.js';
 import { formatAnswer } from '../answer.js';
+import { APP_VERSION } from '../version.js';
 
 export function render(root, ctx) {
   const { state } = ctx;
@@ -33,6 +34,7 @@ export function render(root, ctx) {
             h('span', { class: 'streak-dots', 'aria-label': `${m.streak} of 3 correct` }, '●'.repeat(m.streak) + '○'.repeat(3 - m.streak))))),
       ),
       backup(ctx),
+      h('p', { class: 'hint version' }, `Version ${APP_VERSION}`),
     ),
   );
 }
