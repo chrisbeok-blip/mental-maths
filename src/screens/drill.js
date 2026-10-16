@@ -110,7 +110,7 @@ function submit(view, q, { timeout = false } = {}) {
 
   if (res.correct) {
     view.display.classList.add('flash-ok');
-    setTimeout(() => { view.locked = false; draw(view); }, 350);
+    setTimeout(() => { view.locked = false; draw(view); }, 220);
     return;
   }
   const answer = formatAnswer(q.answer, q.prefix, q.suffix);

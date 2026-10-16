@@ -65,7 +65,14 @@ window.addEventListener('popstate', () => render(current()));
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; if (current().name === 'home') render(current()); });
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').then((reg) => reg.update().catch(() => {})).catch(() => {}));
+  // A new version activated: reload once (not mid-drill) so the page runs the new files.
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloaded || session) return;
+    reloaded = true;
+    location.reload();
+  });
 }
 
 history.replaceState({ name: 'home', params: {} }, '', location.pathname + location.search);
