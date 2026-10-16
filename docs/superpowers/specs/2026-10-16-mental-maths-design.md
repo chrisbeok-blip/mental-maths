@@ -67,7 +67,7 @@ D4 requires D1 and M5.
 
 ### Percentage track
 
-Unlocks when M3 is mastered (needs x10 and halving).
+Unlocks when M3 and D3 are mastered (needs x10 and halving).
 
 | # | Rung | Method card gist |
 |---|------|------------------|
