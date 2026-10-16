@@ -3182,3 +3182,13 @@ No code. Walk this checklist on the Android phone with the installed app and fix
 - [ ] Android back button: from method/drill/progress returns Home; from Home exits the app.
 - [ ] Progress: export code copies; import on a second browser profile restores the same tiles.
 - [ ] Dark and light themes both readable; keypad usable one-handed with the thumb.
+
+---
+
+## Deviations during execution (2026-10-16)
+
+- `sw.js` returns early for cross-origin requests. Intercepting every GET broke the Chrome extension's own script injection during testing and would do the same to any extension on the phone.
+- The Progress screen renders each skill as a two-line list item (name and status, then "90% right, 24 answered, best 32s") instead of a five-column table. The table overflowed at 390 px.
+- `tableMethod(a, 10)` reads "Shift 7 up one place = 70" so the feedback panel's "7 × 10: …" prefix is not repeated.
+- The drill layout gives the question block the free vertical space (`flex: 1`) so the answer box sits directly above the keypad.
+- Visual QA was done with headless Chrome over the DevTools protocol at 390×844 in both colour schemes (driver script kept in the session scratchpad, not the repo). Task 24 (real-phone checklist) remains for Chris.
