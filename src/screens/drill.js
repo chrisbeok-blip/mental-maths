@@ -1,4 +1,4 @@
-import { h, clear, promptNodes } from '../ui.js';
+import { h, clear, icon, promptNodes } from '../ui.js';
 import { RUNGS } from '../ladder.js';
 import { formatAnswer } from '../answer.js';
 import { currentQuestion, submitAnswer, isDone, summarize } from '../session.js';
@@ -24,6 +24,7 @@ function draw(view) {
     : s.mode === 'warmup' ? `Warm-up: ${sessionRung.short}`
     : s.mode === 'speed' ? `Speed round: ${sessionRung.short}`
     : sessionRung.short;
+  const answered = s.results.length, total = s.questions.length;
 
   clear(root);
   const display = h('div', { class: 'display' },
@@ -35,18 +36,21 @@ function draw(view) {
   root.append(
     h('section', { class: 'screen drill' },
       h('header', { class: 'topbar' },
-        h('button', { class: 'btn btn-ghost icon', 'aria-label': 'Quit this session', onclick: () => quit(view) }, '×'),
+        h('button', { class: 'btn icon-btn', 'aria-label': 'Quit this session', onclick: () => quit(view) }, icon('close')),
         h('span', { class: 'title' }, title),
-        h('button', { class: 'btn btn-ghost icon', 'aria-label': 'Show the method', onclick: () => { stopTimer(view); ctx.navigate('method', { rungId: q.rungId, fromDrill: true }); } }, '?'),
+        h('button', { class: 'btn icon-btn', 'aria-label': 'Show the method', onclick: () => { stopTimer(view); ctx.navigate('method', { rungId: q.rungId, fromDrill: true }); } }, icon('help')),
       ),
-      dots(s),
+      h('div', { class: 'drill-progress' },
+        h('div', { class: 'track-bar' }, h('i', { style: `width:${Math.round((answered / total) * 100)}%` })),
+        h('span', { class: 'count' }, `${Math.min(answered + 1, total)} of ${total}`),
+      ),
       h('div', { class: 'question' },
         h('p', { class: `prompt${q.prompt.length > 12 ? ' is-long' : ''}` }, ...promptNodes(q.prompt)),
         s.mode === 'speed' && h('div', { class: 'speedbar' }, h('i')),
       ),
       display,
       h('div', { class: 'keypad' },
-        digit(1), digit(2), digit(3), key('⌫', () => { view.input = view.input.replace(/ r $/, '').slice(0, -1); refresh(view); }, 'key-action', 'Delete'),
+        digit(1), digit(2), digit(3), key(icon('backspace'), () => { view.input = view.input.replace(/ r $/, '').slice(0, -1); refresh(view); }, 'key-action', 'Delete'),
         digit(4), digit(5), digit(6), key('.', () => type(view, '.', q), `key-action ${showDot ? '' : 'hidden'}`, 'Decimal point'),
         digit(7), digit(8), digit(9), key('r', () => type(view, ' r ', q), `key-action ${showR ? '' : 'hidden'}`, 'Remainder'),
         key('0', () => type(view, '0', q), 'key-zero'), key('Go', () => submit(view, q), 'key-go', 'Submit answer'),
@@ -57,16 +61,6 @@ function draw(view) {
   if (s.mode === 'speed') startTimer(view, q);
 }
 
-function dots(s) {
-  const nodes = [];
-  for (let i = 0; i < s.questions.length; i++) {
-    const r = s.results[i];
-    const cls = ['dot', i === s.index && 'is-current', r && (r.correct ? 'is-done' : 'is-wrong'), i >= s.baseCount && 'is-extra'].filter(Boolean).join(' ');
-    nodes.push(h('i', { class: cls }));
-  }
-  return h('div', { class: 'dots' }, ...nodes);
-}
-
 function type(view, ch, q) {
   if (ch === '.' && (view.input.includes('.') || view.input.includes(' r '))) return;
   if (ch === ' r ' && (view.input.includes(' r ') || view.input === '' || view.input.includes('.'))) return;
@@ -75,9 +69,7 @@ function type(view, ch, q) {
   refresh(view);
 }
 
-function refresh(view) {
-  view.display.querySelector('.value').textContent = view.input;
-}
+function refresh(view) { view.display.querySelector('.value').textContent = view.input; }
 
 function startTimer(view, q) {
   const start = performance.now();
@@ -91,10 +83,7 @@ function startTimer(view, q) {
   view.timer = setTimeout(() => submit(view, q, { timeout: true }), SPEED_LIMIT_MS);
 }
 
-function stopTimer(view) {
-  clearTimeout(view.timer); cancelAnimationFrame(view.raf);
-  view.timer = view.raf = null;
-}
+function stopTimer(view) { clearTimeout(view.timer); cancelAnimationFrame(view.raf); view.timer = view.raf = null; }
 
 function submit(view, q, { timeout = false } = {}) {
   if (view.locked) return;
@@ -102,10 +91,10 @@ function submit(view, q, { timeout = false } = {}) {
   view.locked = true;
   stopTimer(view);
   const { ctx } = view;
-  const res = submitAnswer(ctx.session, ctx.state, view.input, Date.now(), { timeout });
+  const typed = view.input;
+  const res = submitAnswer(ctx.session, ctx.state, typed, Date.now(), { timeout });
   ctx.setState(res.state);
   ctx.setSession(res.session);
-  const typed = view.input;
   view.input = '';
 
   if (res.correct) {
@@ -113,18 +102,22 @@ function submit(view, q, { timeout = false } = {}) {
     setTimeout(() => { view.locked = false; draw(view); }, 220);
     return;
   }
+  view.display.classList.add('is-wrong');
   const answer = formatAnswer(q.answer, q.prefix, q.suffix);
-  const panel = h('div', { class: 'feedback' },
-    h('p', { class: 'answer' }, timeout ? `Time's up. ${answer}` : answer),
-    res.repeatWrong && h('p', { class: 'repeat' }, `You put ${typed} last time too.`),
-    h('p', { class: 'method' }, `${q.prompt}: ${q.methodLine}`),
+  const next = () => { view.locked = false; draw(view); };
+  const scrim = h('div', { class: 'scrim', onclick: next });
+  const panel = h('div', { class: 'feedback', role: 'dialog', 'aria-label': 'Answer' },
+    h('p', { class: 'label' }, timeout ? "Time's up" : 'Not quite'),
+    h('p', { class: 'answer' }, `${q.prompt} = ${answer}`),
+    !timeout && h('p', { class: 'yours' }, res.repeatWrong ? 'You put ' : 'You put ', h('s', {}, formatAnswer(typed, q.prefix, q.suffix)), res.repeatWrong ? ', same as last time.' : ''),
+    h('p', { class: 'method' }, q.methodLine),
     h('div', { class: 'actions' },
-      h('button', { class: 'btn btn-primary btn-wide', onclick: () => { view.locked = false; draw(view); } }, 'Got it'),
-      h('button', { class: 'btn btn-ghost btn-wide', onclick: () => ctx.navigate('method', { rungId: q.rungId, fromDrill: true }) }, 'Show the method'),
+      h('button', { class: 'btn btn-primary btn-wide', onclick: next }, 'Continue'),
+      h('button', { class: 'btn btn-ghost btn-wide', onclick: () => ctx.navigate('method', { rungId: q.rungId, fromDrill: true }) }, 'See the full method'),
     ),
   );
-  view.root.querySelector('.drill').append(panel);
-  requestAnimationFrame(() => panel.classList.add('is-open'));
+  view.root.querySelector('.drill').append(scrim, panel);
+  requestAnimationFrame(() => { scrim.classList.add('is-open'); panel.classList.add('is-open'); });
 }
 
 function finish(view) {
