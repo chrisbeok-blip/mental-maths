@@ -27,7 +27,3 @@ export function formatAnswer(answer, prefix = '', suffix = '') {
   return `${prefix}${body}${suffix}`;
 }
 
-/** Length at which the keypad may auto-submit, or null when the answer is not a plain integer. */
-export function autoSubmitLength(answer) {
-  return /^\d+$/.test(answer) ? answer.length : null;
-}

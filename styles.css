@@ -186,7 +186,6 @@ h1, h2, p { margin: 0; }
 }
 .prompt .op { color: var(--accent); font-weight: 500; }
 .prompt.is-long { font-size: clamp(1.5rem, 6.5vw, 2rem); letter-spacing: -0.01em; }
-.warmup-hint { color: var(--muted); text-align: center; font-size: 0.95rem; max-width: 30em; }
 .speedbar { width: 100%; max-width: 280px; height: 4px; border-radius: 2px; background: var(--surface-2); overflow: hidden; }
 .speedbar > i { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(1); }
 

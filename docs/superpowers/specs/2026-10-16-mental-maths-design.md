@@ -121,8 +121,9 @@ a £ sign.
 ### First visit to a rung
 
 1. Method card shown full-screen. "Start" button.
-2. **Warm-up**: 6 untimed questions from that rung only, method gist shown
-   under the question. Warm-up answers do not count toward mastery stats.
+2. **Warm-up**: 6 untimed questions from that rung only, no hints under the
+   question (removed after first test). Warm-up answers do not count toward
+   mastery stats.
 3. Normal sessions thereafter.
 
 ### Answering
@@ -131,8 +132,9 @@ a £ sign.
   decimals, backspace, submit). Phone keyboard never used.
 - "r" key appears only in D4 for remainders (answer format `4 r 3`).
 - A £ prefix is displayed (not typed) for money questions.
-- Submit on tap, or auto-submit when the entered length equals the answer's
-  length and the rung has no decimals/remainders.
+- Submit with the Go key. (Auto-submit on digit count was built and then
+  removed after Chris's first test: it made Go look pointless and leaked the
+  number of digits in the answer.)
 - A small **method** icon in the drill header opens the rung's method card at
   any time, not only after a wrong answer. The scaffold is always available;
   using it is never penalised.

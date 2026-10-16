@@ -1,6 +1,6 @@
 import { h, clear, promptNodes } from '../ui.js';
 import { RUNGS } from '../ladder.js';
-import { formatAnswer, autoSubmitLength } from '../answer.js';
+import { formatAnswer } from '../answer.js';
 import { currentQuestion, submitAnswer, isDone, summarize } from '../session.js';
 import { recordSession } from '../stats.js';
 import { SPEED_LIMIT_MS } from '../scheduler.js';
@@ -16,7 +16,6 @@ function draw(view) {
   if (isDone(s)) return finish(view);
 
   const q = currentQuestion(s);
-  const rung = RUNGS[q.rungId];
   const sessionRung = s.mode === 'weak' ? null : RUNGS[s.rungId];
   const fmt = sessionRung?.format ?? { decimals: true, remainder: true };
   const showDot = fmt.decimals || /\./.test(q.answer);
@@ -43,7 +42,6 @@ function draw(view) {
       dots(s),
       h('div', { class: 'question' },
         h('p', { class: `prompt${q.prompt.length > 12 ? ' is-long' : ''}` }, ...promptNodes(q.prompt)),
-        s.mode === 'warmup' && h('p', { class: 'warmup-hint' }, rung.method.lines[0]),
         s.mode === 'speed' && h('div', { class: 'speedbar' }, h('i')),
       ),
       display,
@@ -75,8 +73,6 @@ function type(view, ch, q) {
   if (view.input.length >= 9) return;
   view.input += ch;
   refresh(view);
-  const n = autoSubmitLength(q.answer);
-  if (n != null && view.input.length === n) submit(view, q);
 }
 
 function refresh(view) {
