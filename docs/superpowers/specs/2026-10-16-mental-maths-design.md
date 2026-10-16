@@ -264,6 +264,10 @@ manifest).
   verified by hand on a phone.
 - **Hosting**: GitHub repo under Chris's account, deployed via GitHub Pages
   from `main`. He opens the URL once and adds it to the home screen.
+- **Target device**: Android phone, Chrome. The app listens for Chrome's
+  `beforeinstallprompt` and shows a one-time "Install" button on Home; it
+  falls back to a Share → Add to Home Screen hint on iOS if ever opened there.
+  Primary test width 390 px.
 - **Location**: `/home/chris/mental-maths/`.
 
 ## Open items for the implementation plan
