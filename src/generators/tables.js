@@ -5,7 +5,7 @@ export function tableMethod(a, b) {
   const p = a * b;
   switch (b) {
     case 2: return `Double ${a} = ${p}`;
-    case 10: return `${a} × 10: shift up one place = ${p}`;
+    case 10: return `Shift ${a} up one place = ${p}`;
     case 5: return `${a} × 10 = ${a * 10}, halve it = ${p}`;
     case 4: return `Double ${a} = ${a * 2}, double again = ${p}`;
     case 3: return `Double ${a} = ${a * 2}, add one more ${a} = ${p}`;
